@@ -1,0 +1,63 @@
+/* =============================================================================
+   KRIO — Color palette (design tokens)
+   Mode dipilih lewat atribut data-theme="light" | "dark" pada elemen induk.
+   Seluruh pasangan teks/latar memenuhi WCAG 2.2 AA (lihat index.html).
+
+   Aturan pemakaian status: warna status TIDAK BOLEH menjadi satu-satunya
+   pembeda. Selalu sertakan ikon dan label teks (mis. "▲ Kritis").
+   ============================================================================= */
+
+:root,
+[data-theme="light"] {
+  /* Permukaan */
+  --color-bg: #F6F8FA;
+  --color-surface: #FFFFFF;
+  --color-surface-muted: #EEF2F6;
+
+  /* Teks */
+  --color-text: #0F1B2A;
+  --color-text-secondary: #4A5A6E;
+
+  /* Garis */
+  --color-border: #D5DDE6;          /* dekoratif, pemisah kartu */
+  --color-border-strong: #7A8899;   /* batas komponen interaktif (input) */
+
+  /* Merek */
+  --color-primary: #0B5F8A;         /* biru laut: tombol utama, tautan */
+  --color-primary-hover: #094C6E;
+  --color-on-primary: #FFFFFF;
+  --color-accent: #0F7C7A;          /* teal: aksen grafik, highlight */
+  --color-focus: #1570EF;           /* cincin fokus keyboard */
+
+  /* Status suhu dan perangkat
+     solid = ikon, garis grafik, border  |  bg + fg = badge berteks */
+  --color-safe: #1B7F4B;       --color-safe-bg: #E6F4EC;     --color-safe-fg: #125C36;
+  --color-warning: #B25E09;    --color-warning-bg: #FDF1E1;  --color-warning-fg: #7A3F05;
+  --color-critical: #C4302B;   --color-critical-bg: #FCE8E7; --color-critical-fg: #8E1F1B;
+  --color-info: #2563A8;       --color-info-bg: #E7F0FA;     --color-info-fg: #1B4A80;
+  --color-offline: #6B7785;    --color-offline-bg: #EDF0F3;  --color-offline-fg: #3F4A56;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0B1420;
+  --color-surface: #121E2C;
+  --color-surface-muted: #1A2839;
+
+  --color-text: #E6EDF5;
+  --color-text-secondary: #A5B3C3;
+
+  --color-border: #2A3A4E;
+  --color-border-strong: #6B7D92;
+
+  --color-primary: #4FB3E0;
+  --color-primary-hover: #7CC6E8;
+  --color-on-primary: #06121C;
+  --color-accent: #3CC4BE;
+  --color-focus: #7CC6E8;
+
+  --color-safe: #3DBE7A;       --color-safe-bg: #0F2E1F;     --color-safe-fg: #8BE0B1;
+  --color-warning: #F0A23B;    --color-warning-bg: #33230C;  --color-warning-fg: #F7C77F;
+  --color-critical: #F2706A;   --color-critical-bg: #3A1614; --color-critical-fg: #F8AFAB;
+  --color-info: #6AA9EC;       --color-info-bg: #11263D;     --color-info-fg: #A9CCF4;
+  --color-offline: #8D99A6;    --color-offline-bg: #1F2A36;  --color-offline-fg: #C3CBD4;
+}

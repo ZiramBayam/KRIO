@@ -8,16 +8,41 @@ Skema PostgreSQL untuk KRIO. Acuan rancangan: ERD pada Lab 2.4 (Tahap 3 — Soft
 |---|---|
 | `migrations/0001_init.sql` | Skema awal: 12 tabel, relasi, aturan integritas data, partisi bulanan `readings` |
 | `tests/0001_init_test.sql` | Uji aturan integritas; seluruh data uji di-rollback |
+| `../alembic/versions/0001_initial_schema.py` | Revisi Alembic yang menjalankan `migrations/0001_init.sql` |
 
 ## Menjalankan
 
 Membutuhkan PostgreSQL 13 atau lebih baru.
 
+Cara yang dianjurkan adalah melalui Alembic, agar versi skema tercatat pada tabel `alembic_version`:
+
 ```bash
 createdb krio_dev
-psql -X -d krio_dev -v ON_ERROR_STOP=1 -f db/migrations/0001_init.sql
+pip install -r requirements.txt
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/krio_dev alembic upgrade head
 psql -X -d krio_dev -f db/tests/0001_init_test.sql
 ```
+
+Menjalankan berkas SQL secara langsung juga tetap didukung (dipakai `scripts/deploy_db.sh`) dan menghasilkan skema yang sama persis:
+
+```bash
+psql -X -d krio_dev -v ON_ERROR_STOP=1 -f db/migrations/0001_init.sql
+```
+
+Berkas SQL adalah satu-satunya sumber definisi skema; revisi Alembic hanya menjalankannya, sehingga kedua cara tidak dapat berbeda isi.
+
+### Basis data yang sudah dibuat lewat psql
+
+Basis data yang skemanya sudah ada sebelum revisi ini dibuat (misalnya Azure PostgreSQL pada #29) tidak boleh dimigrasikan ulang. Tandai versinya saja, lalu lanjutkan seperti biasa:
+
+```bash
+alembic stamp 0001_initial_schema
+alembic current   # harus menampilkan 0001_initial_schema (head)
+```
+
+### Mengembalikan skema
+
+`alembic downgrade base` menghapus seluruh tabel dan fungsi migrasi ini. Ekstensi `citext` sengaja dibiarkan, karena ekstensi berlaku untuk seluruh basis data dan dapat dipakai objek lain.
 
 Uji berhasil bila seluruh baris diawali `LULUS` dan diakhiri `SELESAI seluruh uji lulus`. Bila ada aturan yang tidak ditegakkan, uji berhenti dengan pesan `GAGAL`.
 

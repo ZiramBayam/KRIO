@@ -12,8 +12,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MIGRATION_FILE="${SCRIPT_DIR}/../db/migrations/0001_init.sql"
-TEST_FILE="${SCRIPT_DIR}/../db/tests/0001_init_test.sql"
+MIGRATION_FILE="${SCRIPT_DIR}/../services/ingest/db/migrations/0001_init.sql"
+TEST_FILE="${SCRIPT_DIR}/../services/ingest/db/tests/0001_init_test.sql"
 
 DATABASE_URL="${1:-${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/krio_dev}}"
 

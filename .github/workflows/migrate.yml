@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'alembic/**'
-      - 'db/migrations/**'
+      - 'services/ingest/alembic/**'
+      - 'services/ingest/db/migrations/**'
   workflow_dispatch:
 
 env:
@@ -28,7 +28,9 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Alembic migrations
+        working-directory: services/ingest
         run: alembic upgrade head
 
       - name: Verify migration
+        working-directory: services/ingest
         run: alembic current

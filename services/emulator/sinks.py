@@ -20,12 +20,19 @@ class Sink(Protocol):
     def close(self) -> None: ...
 
 
+class PipeClosed(Exception):
+    """Pembaca stdout menutup pipa lebih dahulu, misalnya ketika disalurkan ke `head`."""
+
+
 class StdoutSink:
     """Menulis satu pesan JSON per baris (JSON Lines) ke stdout."""
 
     def send(self, payload: dict) -> None:
-        sys.stdout.write(json.dumps(payload, separators=(",", ":")) + "\n")
-        sys.stdout.flush()
+        try:
+            sys.stdout.write(json.dumps(payload, separators=(",", ":")) + "\n")
+            sys.stdout.flush()
+        except BrokenPipeError as exc:
+            raise PipeClosed from exc
 
     def close(self) -> None:
         pass

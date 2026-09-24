@@ -20,7 +20,7 @@ import re
 import sys
 
 from .fleet import Simulation, build_fleet
-from .sinks import make_sink
+from .sinks import PipeClosed, make_sink
 from .thermal import MODES
 
 DEFAULT_FLEET = "KRIO-0001:cellular,KRIO-0002:cellular,KRIO-0003:lora"
@@ -97,6 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         print("dihentikan pengguna", file=sys.stderr)
         return 130
+    except PipeClosed:
+        # Wajar ketika keluaran disalurkan ke `head`; berhenti tanpa jejak galat.
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 0
     finally:
         rejected = getattr(sink, "rejected", 0)
         sink.close()

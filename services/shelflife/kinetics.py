@@ -113,3 +113,41 @@ def project_remaining_pct(
     for (m1, c1), (m2, c2) in zip(points, points[1:]):
         d += 0.5 * (decay_rate_per_h(c1, params) + decay_rate_per_h(c2, params)) * (m2 - m1) / 60.0
     return remaining_pct(d)
+
+
+def mkt_c(readings: Iterable[Reading] | Iterable[float], ea_j_per_mol: float) -> float:
+    """Mean Kinetic Temperature dalam derajat Celsius (PRD §13.3, USP GC 1079.2).
+
+        T_MKT = (Ea/R) / ( -ln[ (1/n) * sum(exp(-Ea/(R*Ti))) ] )
+
+    dengan ``Ti`` dalam Kelvin dan ``n`` jumlah pembacaan. MKT adalah suhu
+    isotermal tunggal yang menghasilkan degradasi total setara dengan riwayat
+    suhu yang sebenarnya berfluktuasi; karena exp(-1/T) cembung terhadap T,
+    MKT selalu >= rata-rata aritmetik suhu (ketaksamaan Jensen) — inilah
+    sebabnya rata-rata biasa tidak sah dipakai sebagai bukti compliance.
+
+    ``readings`` boleh berupa iterable pasangan ``(ts, temp_c)`` (bentuk yang
+    sama dengan ``accumulate_decay``) atau iterable suhu ``float`` polos;
+    keduanya diterima karena MKT, berbeda dari integrasi trapesium, tidak
+    bergantung pada urutan maupun jarak antar waktu pembacaan — hanya pada
+    himpunan nilai suhunya (PRD §13.3 menyatakan interval 15 menit sudah
+    memadai menurut USP, dan KRIO mengambil sampel lebih rapat dari itu).
+
+    ``ea_j_per_mol`` diteruskan terpisah, bukan lewat ``KineticParams``,
+    karena MKT pada PRD/USP tidak bergantung pada ``t_ref_k`` maupun
+    ``shelf_life_ref_h`` — hanya pada energi aktivasi produk.
+
+    Melempar ``ValueError`` bila ``readings`` kosong.
+    """
+    temps_c: list[float] = []
+    for item in readings:
+        temps_c.append(item[1] if isinstance(item, tuple) else item)
+    n = len(temps_c)
+    if n == 0:
+        raise ValueError("mkt_c memerlukan minimal satu pembacaan suhu")
+    temps_k = [t + KELVIN_OFFSET for t in temps_c]
+    if any(t <= 0 for t in temps_k):
+        raise ValueError("terdapat suhu di bawah nol mutlak pada readings")
+    mean_exp = sum(math.exp(-ea_j_per_mol / (GAS_CONSTANT * t)) for t in temps_k) / n
+    t_mkt_k = (ea_j_per_mol / GAS_CONSTANT) / (-math.log(mean_exp))
+    return t_mkt_k - KELVIN_OFFSET

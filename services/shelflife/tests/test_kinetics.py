@@ -13,6 +13,7 @@ from shelflife import (
     KineticParams,
     accumulate_decay,
     decay_rate_per_h,
+    mkt_c,
     project_remaining_pct,
     rate_factor,
     remaining_hours,
@@ -114,6 +115,78 @@ class SisaUmurSimpanTest(unittest.TestCase):
         d_60 = accumulate_decay(constant_series(4.0, hours=1, step_min=30), PRD, d0=0.10)
         proyeksi = project_remaining_pct(0.10, 4.0, [(30, 4.0), (60, 4.0)], PRD)
         self.assertAlmostEqual(proyeksi, remaining_pct(d_60), places=9)
+
+
+class MeanKineticTemperatureTest(unittest.TestCase):
+    """Uji mkt_c (PRD §13.3, USP GC 1079.2)."""
+
+    EA = PRD.ea_j_per_mol  # 60.000 J/mol, sama dengan parameter baku ikan segar
+
+    def test_suhu_konstan_mkt_sama_dengan_suhu_itu(self):
+        for temp in (0.0, 2.0, 4.0, -1.5, 10.0):
+            with self.subTest(temp=temp):
+                self.assertAlmostEqual(mkt_c([temp] * 20, self.EA), temp, places=6)
+
+    def test_mkt_selalu_lebih_tinggi_atau_sama_dengan_rata_rata_aritmetik(self):
+        # Ketaksamaan Jensen: exp(-1/T) cembung terhadap T, jadi MKT >= mean.
+        kasus = [
+            [0.0, 4.0],
+            [-2.0, 0.0, 2.0, 8.0],
+            [0.0, 0.0, 0.0, 15.0],          # satu lonjakan tajam, sisanya dingin
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        ]
+        for suhu in kasus:
+            with self.subTest(suhu=suhu):
+                rata2 = sum(suhu) / len(suhu)
+                self.assertGreaterEqual(mkt_c(suhu, self.EA), rata2 - 1e-9)
+
+    def test_mkt_sama_dengan_rata_rata_hanya_saat_suhu_konstan(self):
+        konstan = mkt_c([3.0] * 10, self.EA)
+        fluktuatif = mkt_c([1.0, 3.0, 5.0] * 4, self.EA)
+        self.assertAlmostEqual(konstan, 3.0, places=6)
+        self.assertGreater(fluktuatif, 3.0)   # rata-rata aritmetiknya juga 3.0
+
+    def test_rentang_lebih_lebar_membuat_selisih_mkt_vs_rata_rata_makin_besar(self):
+        sempit = [1.0, 3.0] * 10
+        lebar = [-5.0, 9.0] * 10              # rata-rata aritmetik sama (2.0)
+        rata2 = 2.0
+        selisih_sempit = mkt_c(sempit, self.EA) - rata2
+        selisih_lebar = mkt_c(lebar, self.EA) - rata2
+        self.assertGreater(selisih_lebar, selisih_sempit)
+
+    def test_menerima_pasangan_ts_temp_sama_seperti_accumulate_decay(self):
+        seri = constant_series(4.0, hours=6)                      # list[(ts, temp)]
+        hanya_suhu = [c for _, c in seri]
+        self.assertAlmostEqual(mkt_c(seri, self.EA), mkt_c(hanya_suhu, self.EA), places=9)
+
+    def test_tidak_bergantung_urutan_atau_jarak_antar_waktu(self):
+        # Berbeda dari accumulate_decay (trapesium), MKT hanya fungsi himpunan
+        # nilai suhu — mengacak urutan tidak mengubah hasil.
+        suhu = [0.0, 1.0, 2.0, 10.0, 3.0]
+        import random
+        acak = suhu[:]
+        random.Random(42).shuffle(acak)
+        self.assertAlmostEqual(mkt_c(suhu, self.EA), mkt_c(acak, self.EA), places=9)
+
+    def test_satu_pembacaan_mkt_sama_dengan_suhu_itu(self):
+        self.assertAlmostEqual(mkt_c([2.7], self.EA), 2.7, places=9)
+
+    def test_readings_kosong_ditolak(self):
+        with self.assertRaises(ValueError):
+            mkt_c([], self.EA)
+
+    def test_suhu_di_bawah_nol_mutlak_ditolak(self):
+        with self.assertRaises(ValueError):
+            mkt_c([-300.0, 2.0], self.EA)
+
+    def test_ea_lebih_besar_membuat_mkt_lebih_tinggi_pada_suhu_fluktuatif(self):
+        # Semakin besar Ea, semakin sensitif reaksi terhadap puncak suhu tinggi,
+        # sehingga MKT makin jauh di atas rata-rata (konsisten dengan §13.1).
+        suhu = [0.0, 1.0, 20.0]
+        mkt_rendah = mkt_c(suhu, ea_j_per_mol=40_000.0)
+        mkt_tinggi = mkt_c(suhu, ea_j_per_mol=90_000.0)
+        rata2 = sum(suhu) / len(suhu)
+        self.assertGreater(mkt_tinggi - rata2, mkt_rendah - rata2)
 
 
 class ParameterTest(unittest.TestCase):

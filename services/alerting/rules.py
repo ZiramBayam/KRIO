@@ -11,6 +11,13 @@ Jenis peringatan mengikuti kolom ``alerts.kind`` pada skema basis data:
 
 ``PREDICTED_EXCURSION`` sengaja tidak dipakai di sini: jenis itu untuk peringatan
 berbasis prediksi suhu (F2, issue #61), bukan untuk pelanggaran yang sudah terjadi.
+
+``PINTU_DIBUKA`` (lihat ``residual.py``, issue #62/F4) memakai deteksi anomali
+residual + CUSUM untuk membedakan simpangan singkat (pintu dibuka, info) dari
+simpangan berkepanjangan yang juga terklasifikasi ``KEGAGALAN_PENDINGIN`` lewat
+jalur yang berbeda dari ``evaluate_threshold`` di atas — konstanta ``KIND_DOOR_OPEN``
+didefinisikan di sini supaya satu-satunya sumber kebenaran nama ``kind`` tetap
+di modul ini, sesuai kolom ``alerts.kind``.
 """
 from __future__ import annotations
 
@@ -19,6 +26,7 @@ from datetime import datetime, timedelta
 
 KIND_THRESHOLD = "KEGAGALAN_PENDINGIN"
 KIND_OFFLINE = "DEVICE_OFFLINE"
+KIND_DOOR_OPEN = "PINTU_DIBUKA"
 
 # Ambang keparahan, dinyatakan sebagai simpangan dari batas produk (°C).
 SEVERITY_CRITICAL_C = 5.0

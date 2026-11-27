@@ -11,6 +11,7 @@ from services.alerting.rules import offline_after
 
 from .auth import Authenticated, Writer
 from .db import transaction
+from .simulation import time_scale
 
 router = APIRouter()
 
@@ -47,7 +48,8 @@ class Device(BaseModel):
 
 def device_status(row, now):
     last_seen = row["last_seen_at"]
-    online = last_seen is not None and now - last_seen <= offline_after(row["link_type"])
+    scale = time_scale(str(row["id"]))
+    online = last_seen is not None and (now - last_seen) * scale <= offline_after(row["link_type"])
     return dict(row, last_seen_at=last_seen, status="online" if online else "offline")
 
 
@@ -79,13 +81,13 @@ class ReadingBucket(BaseModel):
 def readings(
     device_id: UUID, user: Authenticated,
     from_at: AwareDatetime | None = Query(default=None, alias="from"),
-    to: AwareDatetime | None = None, bucket: Literal["1m", "5m", "1h"] = "5m",
+    to: AwareDatetime | None = None, bucket: Literal["10s", "1m", "5m", "1h"] = "5m",
 ) -> list[ReadingBucket]:
     end = to or datetime.now(timezone.utc)
     start = from_at or end - timedelta(hours=24)
     if not timedelta(0) < end - start <= timedelta(days=7):
         raise HTTPException(400, "Reading range must be positive and at most 7 days")
-    interval = {"1m": 60, "5m": 300, "1h": 3600}[bucket]
+    interval = {"10s": 10, "1m": 60, "5m": 300, "1h": 3600}[bucket]
     with transaction() as cur:
         cur.execute(
             "SELECT 1 FROM devices WHERE id = %s AND tenant_id = %s",

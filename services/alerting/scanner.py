@@ -7,6 +7,7 @@ diuji tanpa Azure.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -53,7 +54,10 @@ def scan_thresholds(repo: AlertRepository, result: ScanResult) -> None:
         result.messages.append(f"[{draft.severity}] {draft.message}")
 
 
-def scan_offline(repo: AlertRepository, result: ScanResult, now: datetime) -> None:
+def scan_offline(
+    repo: AlertRepository, result: ScanResult, now: datetime,
+    time_scale: Callable[[str], float] | None = None,
+) -> None:
     """Mencari perangkat dengan pengiriman aktif yang berhenti mengirim."""
     for device in repo.active_devices():
         last_alert = repo.last_alert_at(device.tenant_id, device.device_id, KIND_OFFLINE)
@@ -63,6 +67,7 @@ def scan_offline(repo: AlertRepository, result: ScanResult, now: datetime) -> No
             device_label=device.device_label,
             link_type=device.link_type,
             last_alert_at=last_alert,
+            time_scale=time_scale(str(device.device_id)) if time_scale else 1.0,
         )
         if draft is None:
             continue
@@ -71,12 +76,14 @@ def scan_offline(repo: AlertRepository, result: ScanResult, now: datetime) -> No
         result.messages.append(f"[{draft.severity}] {draft.message}")
 
 
-def scan(conn, now: datetime | None = None) -> ScanResult:
+def scan(
+    conn, now: datetime | None = None, time_scale: Callable[[str], float] | None = None,
+) -> ScanResult:
     """Menjalankan seluruh pemeriksaan peringatan satu kali."""
     now = now or datetime.now(timezone.utc)
     repo = AlertRepository(conn)
     result = ScanResult()
     result.resolved_offline = repo.resolve_recovered_offline()
     scan_thresholds(repo, result)
-    scan_offline(repo, result, now)
+    scan_offline(repo, result, now, time_scale)
     return result

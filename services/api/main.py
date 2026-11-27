@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from services.alerting.scanner import scan
 
-from . import auth, dashboard, telemetry
+from . import auth, dashboard, simulation, telemetry
 from .db import transaction
 
 load_dotenv()
@@ -27,7 +27,7 @@ def scan_once():
         with conn, conn.cursor() as cur:
             cur.execute("SELECT pg_try_advisory_xact_lock(%s)", (847206183,))
             if cur.fetchone()[0]:
-                return scan(conn)
+                return scan(conn, time_scale=simulation.time_scale)
     finally:
         conn.close()
 
@@ -39,7 +39,8 @@ async def schedule_alerts(stop: asyncio.Event):
         except psycopg2.Error:
             logger.warning("Scheduled alert scan failed", exc_info=False)
         try:
-            await asyncio.wait_for(stop.wait(), timeout=30)
+            # Scan faster while a dashboard simulation compresses time.
+            await asyncio.wait_for(stop.wait(), timeout=5 if simulation.any_running() else 30)
         except TimeoutError:
             continue
 
@@ -97,6 +98,7 @@ def health():
 app.include_router(auth.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(telemetry.router, prefix="/api")
+app.include_router(simulation.router, prefix="/api")
 
 
 def openapi():

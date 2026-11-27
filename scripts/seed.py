@@ -82,15 +82,24 @@ def seed(conn, password):
             if cur.rowcount != 1:
                 raise ValueError(f"{code} already belongs to another device record")
 
-        cur.execute(
-            """
-            INSERT INTO shipments
-                (id, tenant_id, device_id, product_id, origin, destination, started_at, status)
-            VALUES (%s, %s, %s, %s, 'Gudang KRIO', 'Pasar Tujuan', %s, 'active')
-            ON CONFLICT (id) DO NOTHING
-            """,
-            (shipment_id, tenant_id, seed_id(DEVICES[0][0]), product_id, now - timedelta(days=1)),
-        )
+        # Every demo device carries an active shipment, so each simulation scenario
+        # (threshold and offline alerts) works on whichever device the operator picks.
+        for index, (code, _, _) in enumerate(DEVICES):
+            cur.execute(
+                """
+                INSERT INTO shipments
+                    (id, tenant_id, device_id, product_id, origin, destination, started_at, status)
+                VALUES (%s, %s, %s, %s, 'Gudang KRIO', %s, %s, 'active')
+                ON CONFLICT (id) DO NOTHING
+                """,
+                (
+                    shipment_id if index == 0 else seed_id(f"active-shipment-{code}"),
+                    tenant_id, seed_id(code),
+                    product_id if index != 1 else seed_id("ikan-nila"),
+                    ("Pasar Tujuan", "Pasar Beringharjo", "Gudang Sleman")[index],
+                    now - timedelta(days=1, minutes=index),
+                ),
+            )
 
         for index, (code, _, link) in enumerate(DEVICES):
             device_id = seed_id(code)
@@ -105,7 +114,7 @@ def seed(conn, password):
                 WHERE NOT EXISTS (SELECT 1 FROM readings WHERE device_id = %s)
                 ON CONFLICT (device_id, ts) DO NOTHING
                 """,
-                (device_id, shipment_id if index == 0 else None, index,
+                (device_id, shipment_id if index == 0 else seed_id(f"active-shipment-{code}"), index,
                  now - timedelta(days=1), end, step, device_id),
             )
             cur.execute(

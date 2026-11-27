@@ -124,6 +124,7 @@ def evaluate_offline(
     last_alert_at: datetime | None = None,
     *,
     link_type: str = "cellular",
+    time_scale: float = 1.0,
 ) -> AlertDraft | None:
     """Menilai satu perangkat terhadap batas diam sesuai tipe link.
 
@@ -133,16 +134,20 @@ def evaluate_offline(
     """
     if last_seen_at is None:
         return None
-    diam = now - last_seen_at
+    # ``time_scale`` > 1 berarti perangkat sedang disimulasikan dengan waktu
+    # dipercepat: batas diam dan cooldown diperpendek dengan faktor yang sama,
+    # dan durasi di pesan dinyatakan dalam menit simulasi.
+    diam = (now - last_seen_at) * time_scale
     if diam <= offline_after(link_type):
         return None
-    if last_alert_at is not None and now - last_alert_at < OFFLINE_COOLDOWN:
+    if last_alert_at is not None and (now - last_alert_at) * time_scale < OFFLINE_COOLDOWN:
         return None
 
     menit = int(diam.total_seconds() // 60)
+    keterangan = " (waktu simulasi)" if time_scale != 1.0 else ""
     return AlertDraft(
         kind=KIND_OFFLINE,
         severity="warning",
         raised_at=now,
-        message=f"{device_label}: tidak mengirim telemetri selama {menit} menit",
+        message=f"{device_label}: tidak mengirim telemetri selama {menit} menit{keterangan}",
     )

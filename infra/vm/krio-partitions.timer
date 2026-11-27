@@ -1,0 +1,10 @@
+[Unit]
+Description=Monthly KRIO readings partitions
+
+[Timer]
+OnCalendar=*-*-01 00:10:00 UTC
+OnBootSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

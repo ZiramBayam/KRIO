@@ -13,6 +13,7 @@ import { mockShelfLife } from "@/lib/mockShelfLife";
 import { HeroBanner } from "@/components/HeroBanner";
 import { api, type Alert, type Reading, type Shipment } from "@/lib/api";
 import { alertStatus, clock, KIND_LABEL, shipmentStatus, shipmentStatusLabel, stamp, temp } from "@/lib/format";
+import { finishShipment, isActiveShipment, overlayShipments, useShipmentOverlay } from "@/lib/mockShipmentActions";
 import { usePoll } from "@/lib/usePoll";
 
 const RANGES = { "1h": { hours: 1, bucket: "1m" }, "24h": { hours: 24, bucket: "5m" } } as const;
@@ -20,18 +21,28 @@ const RANGES = { "1h": { hours: 1, bucket: "1m" }, "24h": { hours: 24, bucket: "
 function Detail() {
   const id = useSearchParams().get("id") ?? "";
   const [range, setRange] = useState<keyof typeof RANGES>("1h");
-  const shipment = usePoll(() => id ? api<Shipment>(`/shipments/${encodeURIComponent(id)}`) : Promise.reject(new Error("ID pengiriman belum diisi.")), 10000, [id]);
+  const [local, setLocal] = useShipmentOverlay();
+  const [failure, setFailure] = useState("");
+  const added = local.added.find(s => s.id === id);
+  const shipment = usePoll(() => id.startsWith("mock-")
+    ? added ? Promise.resolve(added) : Promise.reject(new Error("Pengiriman sementara sudah tidak tersedia."))
+    : id ? api<Shipment>(`/shipments/${encodeURIComponent(id)}`) : Promise.reject(new Error("ID pengiriman belum diisi.")), 10000, [id]);
+  const source = added ?? (shipment.data?.id === id ? shipment.data : null);
+  const s = source ? overlayShipments([source], { ...local, added: [] })[0] : null;
+  function finish(status: "completed" | "aborted") {
+    if (!s) return;
+    try { setLocal(previous => finishShipment(previous, s, status)); setFailure(""); }
+    catch (error) { setFailure(error instanceof Error ? error.message : "Perubahan belum dapat diterapkan."); }
+  }
   const readings = usePoll(() => {
-    const s = shipment.data;
     if (!s || s.id !== id) return Promise.resolve<Reading[]>([]);
     const end = new Date(s.ended_at ?? Date.now());
     const start = new Date(Math.max(new Date(s.started_at).getTime(), end.getTime() - RANGES[range].hours * 3600_000));
     if (start > end) return Promise.resolve<Reading[]>([]);
     const q = new URLSearchParams({ device_id: s.device_id, from: start.toISOString(), to: end.toISOString(), bucket: RANGES[range].bucket });
     return api<Reading[]>(`/readings?${q}`);
-  }, 10000, [shipment.data?.device_id, shipment.data?.started_at, shipment.data?.ended_at, range]);
+  }, 10000, [s?.device_id, s?.started_at, s?.ended_at, range]);
   const alerts = usePoll(() => api<Alert[]>("/alerts?status=all"), 10000);
-  const s = shipment.data?.id === id ? shipment.data : null;
   const mine = (alerts.data ?? []).filter((a) => a.shipment_id === id).sort((a, b) => Date.parse(b.raised_at) - Date.parse(a.raised_at));
   const critical = mine.filter((a) => a.severity === "critical" && !a.resolved_at);
   const points = (readings.data ?? []).map((r) => ({ x: new Date(r.ts).getTime(), temp_c: r.temp_c }));
@@ -43,9 +54,19 @@ function Detail() {
       <h1>{s ? s.product_name : "Detail pengiriman"}</h1>
       {s && <><p className="sub">{s.device_label}</p><RouteLine origin={s.origin} destination={s.destination} className="shipment-route" /></>}
     </div>{s && <StatusBadge status={shipmentStatus(s)} />}</div>
-    {shipment.error && <div className="note note-error" role="alert"><div><b>Pengiriman tidak dapat dimuat</b>Periksa ID pengiriman atau coba lagi setelah koneksi tersedia.</div></div>}
+    {shipment.error && !added && <div className="note note-error" role="alert"><div><b>Pengiriman tidak dapat dimuat</b>Periksa ID pengiriman atau coba lagi setelah koneksi tersedia.</div></div>}
     {!s && !shipment.error && <div className="skeleton" aria-label="Memuat detail pengiriman" />}
     {s && <>
+      {(local.changes[s.id] || added) && <p className="note note-info" role="status"><span className="chip">Belum tersimpan ke server</span> Perubahan sementara; muat ulang menghapusnya.</p>}
+      {isActiveShipment(s) && <div className="card"><div className="card-body">
+        <h2>Tindakan pengiriman</h2>
+        <BackendPendingNotice issues={["#41"]} owner="scientivan" />
+        <div className="admin-actions">
+          <button className="btn btn-primary" onClick={() => finish("completed")}>Selesaikan</button>
+          <button className="btn btn-ghost" onClick={() => finish("aborted")}>Batalkan</button>
+        </div>
+      </div></div>}
+      {failure && <p className="note note-error" role="alert">{failure}</p>}
       <div className="grid-3">
         <div className="card"><div className="panel"><div className="fact-label">Status pengiriman</div><div className="fact-value">{shipmentStatusLabel(s)}</div></div></div>
         <div className="card"><div className="panel"><div className="fact-label">Rentang suhu produk</div><div className="fact-value num">{temp(s.temp_min_c)} – {temp(s.temp_max_c)}</div></div></div>

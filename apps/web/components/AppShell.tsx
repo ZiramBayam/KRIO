@@ -10,6 +10,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
   { href: "/dashboard/", label: "Pemantauan", icon: "grid" },
+  { href: "/shipments/", label: "Pengiriman", icon: "truck" },
   { href: "/perangkat/", label: "Perangkat", icon: "signal" },
   { href: "/produk/", label: "Produk", icon: "box" },
   { href: "/alerts/", label: "Peringatan", icon: "bell" },

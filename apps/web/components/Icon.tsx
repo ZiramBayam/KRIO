@@ -7,6 +7,7 @@ const PATHS: Record<string, string> = {
   bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0",
   play: "M8 5v14l11-7z",
   stop: "M7 7h10v10H7z",
+  truck: "M3 6h12v11H3zM15 10h4l3 4v3h-7M7 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
   box: "M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10",
   signal: "M5 18v-3M9 18v-6M13 18V9M17 18V6",
   battery: "M4 8h14v8H4zM18 11h2v2h-2",

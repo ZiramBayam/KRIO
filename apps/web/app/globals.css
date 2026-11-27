@@ -1,6 +1,9 @@
 /* Tokens from design/color-palette/tokens.css. Mode selected via [data-theme] on <html>. */
 :root,
 [data-theme="light"] {
+  --font-display: "Barlow Condensed", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --color-bg: #F6F8FA; --color-surface: #FFFFFF; --color-surface-muted: #EEF2F6;
   --color-text: #0F1B2A; --color-text-secondary: #4A5A6E;
   --color-border: #D5DDE6; --color-border-strong: #7A8899;
@@ -37,7 +40,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
   font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--color-text);
   background-color: var(--color-bg);
   /* Thin 32px cell grid, like a chart sheet. */
@@ -49,11 +52,12 @@ body {
 }
 a { color: var(--color-primary); }
 h1, h2, h3, p { margin: 0; }
-h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
-h2 { font-size: 16px; font-weight: 700; }
-h3 { font-size: 15px; font-weight: 650; }
+h1, h2, h3 { font-family: var(--font-display); }
+h1 { font-size: clamp(32px, 3.5vw, 42px); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 18px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+h3 { font-size: 15px; font-weight: 650; line-height: 1.3; }
 :focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
-.num { font-variant-numeric: tabular-nums; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--color-text-secondary); }
 
 /* Shell */
@@ -247,6 +251,7 @@ nav { display: flex; flex-direction: column; gap: 4px; }
   background: var(--color-primary); transition: width .9s linear;
 }
 .sim-clock {
+  font-family: var(--font-mono);
   font-size: 36px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05;
   color: var(--color-text); font-variant-numeric: tabular-nums;
 }
@@ -260,6 +265,7 @@ nav { display: flex; flex-direction: column; gap: 4px; }
 }
 .timeline li:first-child { border-top: 0; }
 .timeline .t {
+  font-family: var(--font-mono);
   font-weight: 700; font-variant-numeric: tabular-nums; color: var(--color-text-secondary);
   font-size: 13px; line-height: 1.4; padding-top: 1px;
 }
@@ -327,3 +333,255 @@ nav { display: flex; flex-direction: column; gap: 4px; }
   .login-body { padding: 64px 0; }
   .login-hero { min-height: 380px; margin: 0 16px 16px; padding: 32px; }
 }
+
+/* Hero banner */
+.hero-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+.hero-banner-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.hero-banner-status {
+  display: flex;
+  align-items: center;
+}
+.hero-banner-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin: 0;
+}
+.hero-banner-detail {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.hero-banner-stat {
+  flex-shrink: 0;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 24px;
+  border-left: 1px solid var(--color-border);
+}
+.hero-banner-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.hero-banner-stat-value {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-banner-stat {
+    text-align: left;
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding-top: 14px;
+    width: 100%;
+  }
+}
+
+/* Signal bars */
+.signal-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  width: 16px;
+  height: 14px;
+}
+.signal-bar {
+  flex: 1;
+  border-radius: 1px;
+  background-color: var(--color-border);
+  transition: background-color .15s ease;
+}
+.signal-bar.is-filled {
+  background-color: var(--color-primary);
+}
+
+/* Route line */
+.route-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.route-endpoint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.route-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  flex-shrink: 0;
+}
+.route-dot-destination {
+  background-color: var(--color-accent);
+}
+.route-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.route-connector {
+  flex: 1;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+}
+.route-dash {
+  width: 100%;
+  border-top: 2px dashed var(--color-border-strong);
+}
+@media (max-width: 640px) {
+  .route-line {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* 3D FlipCard */
+.flip-card {
+  perspective: 1000px;
+  position: relative;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .5s;
+}
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-inner {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Shared Patterns: Editor Panel, Icon Chips, Auth Faces
+   ========================================================================== */
+
+/* Editor panel: slide-in form panel from the right */
+.editor-panel {
+  position: relative;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  padding: 24px;
+  animation: editorPanelIn .25s ease-out;
+}
+@keyframes editorPanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editor-panel {
+    animation: none !important;
+  }
+}
+
+/* Icon chips: small rounded-square icon badge */
+.icon-chip {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+.icon-chip-info {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+.icon-chip-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+.icon-chip-critical {
+  background: var(--color-critical-bg);
+  color: var(--color-critical-fg);
+}
+.icon-chip-safe {
+  background: var(--color-safe-bg);
+  color: var(--color-safe-fg);
+}
+.icon-chip-offline {
+  background: var(--color-offline-bg);
+  color: var(--color-offline-fg);
+}
+
+/* Auth faces: two-sided layout for FlipCard login/register */
+.auth-face-register,
+.auth-face-login {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.auth-face-login {
+  transform: rotateY(180deg);
+}
+@media (max-width: 900px) {
+  .auth-face-register,
+  .auth-face-login {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+

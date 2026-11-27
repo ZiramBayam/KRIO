@@ -1,10 +1,13 @@
 const PATHS: Record<string, string> = {
+  edit: "M15 4l5 5M4 20l4-1 12-12a2.1 2.1 0 0 0-3-3L5 16z",
+  trash: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7",
   eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z",
   "eye-off": "M3 3l18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a20 20 0 0 1-3 3.8M6.2 6.2A21 21 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.8-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2",
   grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
   bell: "M6 16V11a6 6 0 1 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0",
   play: "M8 5v14l11-7z",
   stop: "M7 7h10v10H7z",
+  truck: "M3 6h12v11H3zM15 10h4l3 4v3h-7M7 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
   box: "M3 7l9-4 9 4-9 4zM3 7v10l9 4 9-4V7M12 11v10",
   signal: "M5 18v-3M9 18v-6M13 18V9M17 18V6",
   battery: "M4 8h14v8H4zM18 11h2v2h-2",

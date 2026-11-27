@@ -1,4 +1,4 @@
-import type { Alert, Device } from "./api";
+import type { Alert, Device, Shipment } from "./api";
 
 export type Status = "safe" | "warning" | "critical" | "offline";
 
@@ -52,3 +52,13 @@ export function simClock(seconds: number) {
   const s = Math.floor(seconds % 60);
   return `${String(m).padStart(2, "0")}.${String(s).padStart(2, "0")}`;
 }
+
+export const SHIPMENT_STATUS_LABEL: Record<string, string> = { active: "Aktif", completed: "Selesai", aborted: "Dibatalkan" };
+export function shipmentStatus(s: Shipment): Status {
+  const v = s.status.toLowerCase();
+  if (["aborted", "failed", "cancelled", "canceled"].includes(v)) return "critical";
+  if (["completed", "done", "finished"].includes(v)) return "safe";
+  if (["active", "in_transit", "ongoing", "running"].includes(v)) return "warning";
+  return "offline";
+}
+export function shipmentStatusLabel(s: Shipment) { return SHIPMENT_STATUS_LABEL[s.status.toLowerCase()] ?? s.status; }

@@ -13,6 +13,11 @@ export type Device = {
   batt_v: number | null; rh_pct: number | null; rssi: number | null;
   temp_min_c: number | null; temp_max_c: number | null; status: "online" | "offline";
 };
+export type Shipment = {
+  id: string; device_id: string; device_label: string; product_id: string; product_name: string;
+  origin: string; destination: string; status: string; started_at: string; ended_at: string | null;
+  temp_min_c: number; temp_max_c: number;
+};
 export type Reading = { ts: string; temp_c: number; count: number };
 export type Alert = {
   id: string; device_id: string; shipment_id: string | null; kind: string;

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Icon } from "@/components/Icon";
+import { SignalBars } from "@/components/SignalBars";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TempChart } from "@/components/TempChart";
 import { api, type Alert, type Device, type Reading } from "@/lib/api";
@@ -66,7 +67,11 @@ function Detail() {
         <div className="card"><div className="panel"><div className="fact-label">Suhu terakhir</div>
           <div className="device-temp num">{temp(d?.temp_c ?? null)}</div></div>
           <div className="card-body"><h3>Pembacaan sensor</h3><p className="muted">Diukur {d?.reading_at ? clock(d.reading_at) : "belum ada"}.</p></div></div>
-        <div className="card"><div className="panel"><div className="fact-label">Baterai</div>
+        <div className="card"><div className="panel">
+          <div className="fact-label" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Baterai</span>
+            <SignalBars rssi={d?.rssi ?? null} />
+          </div>
           <div className="device-temp num">{d?.batt_v != null ? `${d.batt_v.toFixed(2)} V` : "Tidak ada"}</div></div>
           <div className="card-body"><h3>Daya perangkat</h3><p className="muted">Di bawah 3,4 V perangkat perlu diisi ulang.</p></div></div>
         <div className="card"><div className="panel"><div className="fact-label">Kelembapan</div>

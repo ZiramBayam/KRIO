@@ -228,6 +228,14 @@ nav { display: flex; flex-direction: column; gap: 4px; }
 .row-title { font-weight: 700; }
 .row-sub { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
 .row-enter { animation: rowIn .3s ease-out; }
+.row.row-device-repeat {
+  border-left: 3px solid var(--color-border-strong);
+  padding-left: 20px;
+  background-color: color-mix(in srgb, var(--color-surface-muted) 35%, var(--color-surface));
+}
+.row.row-device-repeat:hover {
+  background-color: var(--color-surface-muted);
+}
 @keyframes rowIn { from { opacity: 0; transform: translateY(-4px); background: var(--color-warning-bg); } to { opacity: 1; transform: none; background: transparent; } }
 @media (max-width: 900px) { .row { grid-template-columns: 1fr; gap: 6px; } }
 

@@ -28,6 +28,24 @@ export default function Alerts() {
   const canAck = session()?.user.role !== "viewer";
 
   const list = (alerts.data ?? []).filter((a) => severity === "all" || a.severity === severity);
+
+  // Pengelompokan visual per perangkat (mempertahankan urutan kejadian terbaru)
+  const groupedList: { alert: Alert; groupIndex: number; groupTotal: number }[] = [];
+  const deviceGroups = new Map<string, Alert[]>();
+  for (const a of list) {
+    const existing = deviceGroups.get(a.device_id);
+    if (existing) {
+      existing.push(a);
+    } else {
+      deviceGroups.set(a.device_id, [a]);
+    }
+  }
+  for (const group of deviceGroups.values()) {
+    group.forEach((alert, idx) => {
+      groupedList.push({ alert, groupIndex: idx, groupTotal: group.length });
+    });
+  }
+
   const fresh = new Set<string>();
   if (alerts.data) {
     if (seen.current) for (const a of alerts.data) if (!seen.current.has(a.id)) fresh.add(a.id);
@@ -90,15 +108,30 @@ export default function Alerts() {
             <div className="note" style={{ border: 0 }}><div><b>Tidak ada peringatan</b>Semua perangkat sedang dalam kondisi yang tidak memicu peringatan.</div></div>
           )}
           <div className="rows">
-            {list.map((a) => (
-              <div className={`row${fresh.has(a.id) ? " row-enter" : ""}`} key={a.id}>
+            {groupedList.map(({ alert: a, groupIndex, groupTotal }) => (
+              <div
+                className={`row${fresh.has(a.id) ? " row-enter" : ""}${groupTotal > 1 && groupIndex > 0 ? " row-device-repeat" : ""}`}
+                key={a.id}
+              >
                 <StatusBadge status={alertStatus(a)} />
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   <span className={`icon-chip icon-chip-${a.severity}`} aria-hidden="true">
                     <Icon name={alertIcon(a.kind)} size={16} />
                   </span>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div className="row-title">{KIND_LABEL[a.kind] ?? a.kind} di {labels.get(a.device_id) ?? "perangkat"}</div>
+                    <div className="row-title" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span>{KIND_LABEL[a.kind] ?? a.kind} di {labels.get(a.device_id) ?? "perangkat"}</span>
+                      {groupTotal > 1 && groupIndex === 0 && (
+                        <span className="chip" style={{ fontSize: 11, fontWeight: 700, height: 20, padding: "0 8px", color: "var(--color-critical)" }}>
+                          {groupTotal} peringatan
+                        </span>
+                      )}
+                      {groupTotal > 1 && groupIndex > 0 && (
+                        <span className="chip" style={{ fontSize: 11, fontWeight: 600, height: 20, padding: "0 8px" }}>
+                          #{groupIndex + 1}
+                        </span>
+                      )}
+                    </div>
                     <div className="row-sub">{a.message}</div>
                   </div>
                 </div>

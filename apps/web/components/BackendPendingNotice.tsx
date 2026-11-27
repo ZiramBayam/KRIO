@@ -13,7 +13,7 @@ export function BackendPendingNotice({
   return (
     <div className={`note note-info ${className}`.trim()} role="status">
       <div>
-        Operasi ini memakai data sementara menunggu backend {issueList} (@{owner}). Tidak memengaruhi data asli.
+        Operasi ini memakai data sementara menunggu backend {issueList} (@{owner}). Tidak memengaruhi data asli. Perubahan hanya berlaku sementara dan hilang saat halaman dimuat ulang.
       </div>
     </div>
   );

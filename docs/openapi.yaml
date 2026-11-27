@@ -136,6 +136,7 @@ paths:
         required: false
         schema:
           enum:
+          - 10s
           - 1m
           - 5m
           - 1h
@@ -289,6 +290,61 @@ paths:
           description: Invalid telemetry
       security:
       - APIKeyHeader: []
+  /api/simulation:
+    get:
+      summary: Current
+      operationId: current_api_simulation_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - $ref: '#/components/schemas/Simulation'
+                - type: 'null'
+                title: Response Current Api Simulation Get
+      security:
+      - HTTPBearer: []
+    post:
+      summary: Start
+      operationId: start_api_simulation_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartSimulation'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Simulation'
+        '409':
+          description: A simulation is already running
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/simulation/stop:
+    post:
+      summary: Stop
+      operationId: stop_api_simulation_stop_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Simulation'
+      security:
+      - HTTPBearer: []
 components:
   schemas:
     Alert:
@@ -430,6 +486,24 @@ components:
       - temp_max_c
       - status
       title: Device
+    Event:
+      properties:
+        sim_s:
+          type: number
+          title: Sim S
+        at:
+          type: string
+          format: date-time
+          title: At
+        text:
+          type: string
+          title: Text
+      type: object
+      required:
+      - sim_s
+      - at
+      - text
+      title: Event
     HTTPValidationError:
       properties:
         detail:
@@ -569,6 +643,106 @@ components:
       - temp_min_c
       - temp_max_c
       title: Shipment
+    Simulation:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        device_id:
+          type: string
+          format: uuid
+          title: Device Id
+        device_code:
+          type: string
+          title: Device Code
+        device_label:
+          type: string
+          title: Device Label
+        mode:
+          type: string
+          enum:
+          - normal
+          - excursion
+          - door-open
+          - offline
+          title: Mode
+        state:
+          type: string
+          enum:
+          - running
+          - finished
+          - stopped
+          - failed
+          title: State
+        speed:
+          type: number
+          title: Speed
+        duration_s:
+          type: number
+          title: Duration S
+        sim_elapsed_s:
+          type: number
+          title: Sim Elapsed S
+        started_at:
+          type: string
+          format: date-time
+          title: Started At
+        ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ended At
+        sent:
+          type: integer
+          title: Sent
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+        events:
+          items:
+            $ref: '#/components/schemas/Event'
+          type: array
+          title: Events
+      type: object
+      required:
+      - id
+      - device_id
+      - device_code
+      - device_label
+      - mode
+      - state
+      - speed
+      - duration_s
+      - sim_elapsed_s
+      - started_at
+      - ended_at
+      - sent
+      - error
+      - events
+      title: Simulation
+    StartSimulation:
+      properties:
+        device_id:
+          type: string
+          format: uuid
+          title: Device Id
+        mode:
+          type: string
+          enum:
+          - normal
+          - excursion
+          - door-open
+          - offline
+          title: Mode
+      type: object
+      required:
+      - device_id
+      - mode
+      title: StartSimulation
     User:
       properties:
         id:

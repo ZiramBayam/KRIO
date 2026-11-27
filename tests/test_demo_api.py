@@ -145,8 +145,8 @@ def test_ingest_validation_idempotency_and_watermark(client, database):
 def test_shipment_readings_and_alerts(client, database):
     auth = headers(client)
     listing = client.get("/api/shipments", headers=auth).json()
-    assert len(listing) == 1
-    shipment = listing[0]
+    assert len(listing) == 3
+    shipment = next(item for item in listing if item["device_id"] == seed_id("KRIO-0001"))
     assert shipment["temp_max_c"] == 4
     assert client.get(f"/api/shipments/{shipment['id']}", headers=auth).json() == shipment
     end = datetime.now(timezone.utc)
@@ -235,3 +235,60 @@ def test_emulator_http_to_postgres_to_devices(database):
             server.should_exit = True
             thread.join(timeout=10)
             assert not thread.is_alive()
+
+
+class ClientSink:
+    """Send emulator payloads through the in-process API, like HttpSink does."""
+
+    def __init__(self, client):
+        self.client = client
+
+    def send(self, payload):
+        response = self.client.post("/api/ingest", json=payload, headers=device_headers(payload["device_id"]))
+        assert response.status_code in (200, 201), response.text
+
+    def close(self):
+        pass
+
+
+def test_simulation_runs_scenario_through_ingest(client, database, monkeypatch):
+    from services.api import simulation
+
+    monkeypatch.setattr(simulation, "SPEED", 7200.0)
+    monkeypatch.setattr(simulation, "make_sink", lambda: ClientSink(client))
+    auth = headers(client)
+    device = next(d for d in client.get("/api/devices", headers=auth).json() if d["device_id"] == "KRIO-0002")
+    form = {"device_id": device["id"], "mode": "excursion"}
+
+    viewer = headers(client, "viewer@demo.com")
+    assert client.post("/api/simulation", json=form, headers=viewer).status_code == 403
+    other = headers(client, "other@test.local")
+    assert client.post("/api/simulation", json=form, headers=other).status_code == 404
+
+    started = client.post("/api/simulation", json=form, headers=auth)
+    assert started.status_code == 201
+    assert client.post("/api/simulation", json=form, headers=auth).status_code == 409
+    for _ in range(200):
+        state = client.get("/api/simulation", headers=auth).json()
+        if state["state"] != "running":
+            break
+        time.sleep(0.05)
+    assert state["state"] == "finished", state
+    assert state["sent"] > 0
+    assert [e["text"] for e in state["events"]][:2] == ["Simulasi dimulai", "Pendingin berhenti bekerja"]
+    assert client.get("/api/simulation", headers=other).json() is None
+
+    scan_once()
+    active = client.get("/api/alerts", headers=auth).json()
+    assert any(a["device_id"] == device["id"] and a["kind"] == "KEGAGALAN_PENDINGIN" for a in active)
+
+
+def test_simulated_time_scales_offline_threshold():
+    from services.alerting.rules import evaluate_offline
+
+    now = datetime.now(timezone.utc)
+    seen = now - timedelta(seconds=31)
+    assert evaluate_offline(seen, now, "Boks", link_type="cellular") is None
+    draft = evaluate_offline(seen, now, "Boks", link_type="cellular", time_scale=20)
+    assert draft is not None and "waktu simulasi" in draft.message
+    assert evaluate_offline(seen, now, "Boks", link_type="lora", time_scale=20) is None

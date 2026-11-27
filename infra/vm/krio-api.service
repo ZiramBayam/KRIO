@@ -1,0 +1,15 @@
+[Unit]
+Description=KRIO API (FastAPI, alert scanner, dashboard simulations)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+User=krio
+WorkingDirectory=/home/krio/KRIO
+EnvironmentFile=/etc/krio/krio.env
+ExecStart=/home/krio/KRIO/.venv/bin/python -m uvicorn services.api.main:app --host 127.0.0.1 --port 8000 --proxy-headers
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

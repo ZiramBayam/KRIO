@@ -17,7 +17,7 @@ export function DeviceCard({ device, now }: { device: Device; now: number }) {
           {device.temp_min_c != null ? `Rentang produk ${device.temp_min_c} sampai ${device.temp_max_c} °C` : "Belum ada pengiriman aktif"}
         </div>
         <div className="facts">
-          <div className="fact"><div className="fact-label"><Icon name="clock" size={14} />Data terakhir</div>
+          <div className="fact"><div className="fact-label"><Icon name="clock" size={14} />Terakhir</div>
             <div className="fact-value">{ago(device.last_seen_at, now)}</div></div>
           <div className="fact"><div className="fact-label"><Icon name="battery" size={14} />Baterai</div>
             <div className="fact-value num">{device.batt_v != null ? `${device.batt_v.toFixed(2)} V` : "Tidak ada"}</div></div>

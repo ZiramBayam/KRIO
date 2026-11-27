@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Daily pg_dump of the KRIO database to the VM's persistent OS disk; keeps 7 copies.
 set -euo pipefail
+umask 077
 set -a; . /etc/krio/krio.env; set +a
 dir=/var/backups/krio
 mkdir -p "$dir"

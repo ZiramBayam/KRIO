@@ -66,13 +66,23 @@ export default function SimulationPage() {
 
   const device = devices.data?.find((d) => d.id === deviceId) ?? null;
   const toSim = (iso: string) => (startedAt ? ((new Date(iso).getTime() - startedAt) / 1000) * speed : 0);
-  const points = (readings.data ?? [])
-    .map((r) => ({ x: startedAt ? toSim(r.ts) / 60 : new Date(r.ts).getTime(), temp_c: r.temp_c }))
-    .filter((p) => !startedAt || p.x >= 0);
+  const raw = (readings.data ?? [])
+    // Buckets start on 10-second boundaries, so the first one can begin just before the run.
+    .map((r) => ({ x: startedAt ? Math.max(0, toSim(r.ts) / 60) : new Date(r.ts).getTime(), temp_c: r.temp_c }));
+  // Break the line where the device was silent, so an offline gap reads as a gap.
+  const points: { x: number; temp_c: number | null }[] = [];
+  raw.forEach((p, i) => {
+    if (startedAt && i > 0 && p.x - raw[i - 1].x > 5) points.push({ x: (p.x + raw[i - 1].x) / 2, temp_c: null });
+    points.push(p);
+  });
   const runAlerts = run ? (alerts.data ?? []).filter((a) => a.device_id === run.device_id && new Date(a.raised_at).getTime() >= startedAt! - 1000) : [];
   const timeline = run ? [
     ...run.events.map((e) => ({ key: `e${e.at}${e.text}`, sim: e.sim_s, text: e.text, kind: e.text.includes("berhenti mengirim") ? "offline" : "event" })),
     ...runAlerts.map((a) => ({ key: a.id, sim: toSim(a.raised_at), text: `Peringatan ${alertStatus(a) === "critical" ? "kritis" : "baru"}. ${a.message}`, kind: "alert" })),
+    ...runAlerts.filter((a) => a.resolved_at).map((a) => ({
+      key: `${a.id}-done`, sim: toSim(a.resolved_at!), kind: "event",
+      text: a.acked_by ? "Peringatan ditandai sudah ditangani" : "Peringatan selesai otomatis karena perangkat kembali mengirim data",
+    })),
   ].sort((a, b) => a.sim - b.sim) : [];
   const elapsed = run?.sim_elapsed_s ?? 0;
   const lastPoint = points.at(-1);

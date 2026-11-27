@@ -34,6 +34,9 @@ TICK_S = 30.0         # simulated seconds per step
 DURATION_S = 3600.0   # one simulated hour, about 3 real minutes
 EVENT_START_S = 600.0
 OFFLINE_S = 1500.0
+# Denser than the field defaults (300 s cellular, 600 s LoRa) so the chart shows
+# the shape of each scenario; the offline threshold still follows the link type.
+SEND_INTERVAL_S = {"cellular": 120, "lora": 240}
 
 Mode = Literal["normal", "excursion", "door-open", "offline"]
 State = Literal["running", "finished", "stopped", "failed"]
@@ -142,7 +145,7 @@ def phase(mode: str, t: float) -> str | None:
 def execute(run: Run, sink: Sink) -> None:
     device = build_fleet(
         specs=[(run.device_code, run.link)], mode=run.mode, seed=random.randrange(1 << 30),
-        event_start_s=EVENT_START_S,
+        event_start_s=EVENT_START_S, interval_s=SEND_INTERVAL_S[run.link],
     )[0]
     t = 0.0
     previous = None

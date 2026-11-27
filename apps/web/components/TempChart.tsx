@@ -4,7 +4,7 @@ import {
   CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
-type Point = { x: number; temp_c: number };
+type Point = { x: number; temp_c: number | null };
 
 export function TempChart({
   points, min, max, xLabel, formatX, height = 280, domainX,
@@ -12,7 +12,7 @@ export function TempChart({
   points: Point[]; min: number | null; max: number | null; xLabel: string;
   formatX: (x: number) => string; height?: number; domainX?: [number, number];
 }) {
-  const temps = points.map((p) => p.temp_c);
+  const temps = points.flatMap((p) => (p.temp_c == null ? [] : [p.temp_c]));
   const low = Math.floor(Math.min(...temps, min ?? 0, 0) - 1);
   const high = Math.ceil(Math.max(...temps, max ?? 4, 4) + 1);
   return (

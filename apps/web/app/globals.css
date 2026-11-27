@@ -93,7 +93,7 @@ nav { display: flex; flex-direction: column; gap: 4px; }
 .device-range { font-size: 13px; color: var(--color-text-secondary); font-weight: 600; }
 .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
 .fact { background: var(--color-surface); border-radius: 8px; padding: 8px 10px; }
-.fact-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); font-weight: 600; }
+.fact-label { white-space: nowrap; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); font-weight: 600; }
 .fact-value { font-size: 14px; font-weight: 700; margin-top: 2px; }
 
 /* Badge: icon + label, never colour alone. */

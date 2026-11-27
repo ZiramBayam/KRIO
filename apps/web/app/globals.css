@@ -503,4 +503,85 @@ nav { display: flex; flex-direction: column; gap: 4px; }
   }
 }
 
+/* ==========================================================================
+   Shared Patterns: Editor Panel, Icon Chips, Auth Faces
+   ========================================================================== */
+
+/* Editor panel: slide-in form panel from the right */
+.editor-panel {
+  position: relative;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  padding: 24px;
+  animation: editorPanelIn .25s ease-out;
+}
+@keyframes editorPanelIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editor-panel {
+    animation: none !important;
+  }
+}
+
+/* Icon chips: small rounded-square icon badge */
+.icon-chip {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  background: var(--color-surface-muted);
+  color: var(--color-text-secondary);
+}
+.icon-chip-info {
+  background: var(--color-info-bg);
+  color: var(--color-info-fg);
+}
+.icon-chip-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-fg);
+}
+.icon-chip-critical {
+  background: var(--color-critical-bg);
+  color: var(--color-critical-fg);
+}
+.icon-chip-safe {
+  background: var(--color-safe-bg);
+  color: var(--color-safe-fg);
+}
+.icon-chip-offline {
+  background: var(--color-offline-bg);
+  color: var(--color-offline-fg);
+}
+
+/* Auth faces: two-sided layout for FlipCard login/register */
+.auth-face-register,
+.auth-face-login {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.auth-face-login {
+  transform: rotateY(180deg);
+}
+@media (max-width: 900px) {
+  .auth-face-register,
+  .auth-face-login {
+    grid-template-columns: 1fr;
+  }
+}
+
+
 

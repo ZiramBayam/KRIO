@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Icon } from "@/components/Icon";
+import { FlipCard } from "@/components/FlipCard";
 import { BackendPendingNotice } from "@/components/BackendPendingNotice";
 import { signIn } from "@/lib/api";
 import { mockRegister } from "@/lib/mockAuth";
@@ -55,8 +56,8 @@ export function RegisterSide({ onSwitchSide }: SideProps) {
           <h2>Gabung dan mulai pantau suhu pengiriman Anda.</h2>
           <p>Pantau kualitas dan suhu boks ikan segar secara langsung dari gudang hingga ke tangan pelanggan.</p>
           <div className="login-switch-action">
-            <span>Sudah punya akun?</span>{" "}
-            <button type="button" className="login-switch-link" onClick={onSwitchSide}>
+            <span className="login-switch-text">Sudah punya akun?</span>
+            <button type="button" className="login-switch-btn" onClick={onSwitchSide}>
               Masuk
             </button>
           </div>
@@ -72,7 +73,7 @@ export function RegisterSide({ onSwitchSide }: SideProps) {
         </header>
         <div className="login-body">
           <BackendPendingNotice issues={["#36"]} owner="scientivan" />
-          <p className="login-eyebrow" style={{ marginTop: 16 }}>Pendaftaran akun baru</p>
+          <p className="login-eyebrow" style={{ marginTop: 18 }}>Pendaftaran akun baru</p>
           <h1 id="register-heading">Daftar ke KRIO</h1>
           <p className="login-intro">Buat akun untuk memantau pengiriman rantai dingin Anda.</p>
           <form className="login-form" onSubmit={handleRegister} aria-busy={busy}>
@@ -176,8 +177,8 @@ export function LoginSide({ onSwitchSide }: SideProps) {
           <h2>Ikan segar.<br />Perjalanan terjaga.</h2>
           <p>Pantau suhu sepanjang pengiriman, agar Anda tahu kapan perlu bertindak.</p>
           <div className="login-switch-action">
-            <span>Belum punya akun?</span>{" "}
-            <button type="button" className="login-switch-link" onClick={onSwitchSide}>
+            <span className="login-switch-text">Belum punya akun?</span>
+            <button type="button" className="login-switch-btn" onClick={onSwitchSide}>
               Daftar
             </button>
           </div>
@@ -191,12 +192,12 @@ export default function LoginPage() {
   const [side, setSide] = useState<"register" | "login">("register");
 
   return (
-    <main>
-      {side === "register" ? (
-        <RegisterSide onSwitchSide={() => setSide("login")} />
-      ) : (
-        <LoginSide onSwitchSide={() => setSide("register")} />
-      )}
+    <main className="login-flip-wrapper">
+      <FlipCard
+        flipped={side === "login"}
+        front={<RegisterSide onSwitchSide={() => setSide("login")} />}
+        back={<LoginSide onSwitchSide={() => setSide("register")} />}
+      />
     </main>
   );
 }

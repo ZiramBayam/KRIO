@@ -27,8 +27,8 @@ const MODE_NAME = Object.fromEntries(SCENARIOS.map((s) => [s.mode, s.name])) as 
 function Preview({ shape, offline }: { shape: string; offline?: boolean }) {
   return (
     <svg width="64" height="40" viewBox="0 0 64 28" aria-hidden="true">
-      <line x1="0" y1="9" x2="64" y2="9" stroke="var(--color-critical)" strokeDasharray="3 2" strokeWidth="1" />
-      {offline && <rect x="12" y="4" width="26" height="20" fill="var(--color-offline-bg)" />}
+      <line x1="0" y1="9" x2="64" y2="9" stroke="var(--color-critical)" strokeDasharray="3 2" strokeWidth="1" strokeOpacity="0.75" />
+      {offline && <rect x="12" y="3" width="26" height="22" rx="2" fill="var(--color-offline-bg)" />}
       <path d={shape} fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -124,8 +124,10 @@ export default function SimulationPage() {
           <div className="device-pick" style={{ padding: "0 4px 4px" }}>
             {(devices.data ?? []).map((d) => (
               <button key={d.id} aria-pressed={d.id === deviceId} disabled={running} onClick={() => setDeviceId(d.id)}>
-                <span style={{ fontWeight: 700 }}>{d.label}</span>
-                <span className="muted" style={{ fontSize: 12 }}>{d.device_id}, {link(d.link_type)}</span>
+                <span style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{d.label}</span>
+                  <span className="muted" style={{ fontSize: 12 }}>{d.device_id}, {link(d.link_type)}</span>
+                </span>
                 <StatusBadge status={deviceStatus(d)} />
               </button>
             ))}
@@ -135,7 +137,10 @@ export default function SimulationPage() {
             {SCENARIOS.map((s) => (
               <button key={s.mode} className="scenario" aria-pressed={mode === s.mode} disabled={running} onClick={() => setMode(s.mode)}>
                 <Preview shape={s.shape} offline={s.mode === "offline"} />
-                <span><span className="scenario-name">{s.name}</span><span className="scenario-desc" style={{ display: "block" }}>{s.desc}</span></span>
+                <span style={{ minWidth: 0 }}>
+                  <span className="scenario-name">{s.name}</span>
+                  <span className="scenario-desc">{s.desc}</span>
+                </span>
               </button>
             ))}
           </div>

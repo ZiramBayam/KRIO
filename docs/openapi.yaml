@@ -1,0 +1,724 @@
+openapi: 3.1.0
+info:
+  title: KRIO Demo API
+  version: 1.0.0
+paths:
+  /api/health:
+    get:
+      summary: Health
+      operationId: health_api_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /api/auth/login:
+    post:
+      summary: Login
+      operationId: login_api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/me:
+    get:
+      summary: Me
+      operationId: me_api_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      security:
+      - HTTPBearer: []
+  /api/devices:
+    get:
+      summary: Devices
+      operationId: devices_api_devices_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Device'
+                type: array
+                title: Response Devices Api Devices Get
+      security:
+      - HTTPBearer: []
+  /api/devices/{device_id}:
+    get:
+      summary: Device
+      operationId: device_api_devices__device_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Device Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/readings:
+    get:
+      summary: Readings
+      operationId: readings_api_readings_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: device_id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Device Id
+      - name: from
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: From
+      - name: to
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: To
+      - name: bucket
+        in: query
+        required: false
+        schema:
+          enum:
+          - 1m
+          - 5m
+          - 1h
+          type: string
+          default: 5m
+          title: Bucket
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingBucket'
+                title: Response Readings Api Readings Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/alerts:
+    get:
+      summary: Alerts
+      operationId: alerts_api_alerts_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          enum:
+          - active
+          - resolved
+          - all
+          type: string
+          default: active
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+                title: Response Alerts Api Alerts Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/alerts/{alert_id}/ack:
+    post:
+      summary: Acknowledge
+      operationId: acknowledge_api_alerts__alert_id__ack_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: alert_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Alert Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/shipments:
+    get:
+      summary: Shipments
+      operationId: shipments_api_shipments_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Shipment'
+                type: array
+                title: Response Shipments Api Shipments Get
+      security:
+      - HTTPBearer: []
+  /api/shipments/{shipment_id}:
+    get:
+      summary: Shipment
+      operationId: shipment_api_shipments__shipment_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: shipment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Shipment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/ingest:
+    post:
+      summary: Ingest
+      operationId: ingest_api_ingest_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Telemetry'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '400':
+          description: Invalid telemetry
+      security:
+      - APIKeyHeader: []
+components:
+  schemas:
+    Alert:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        device_id:
+          type: string
+          format: uuid
+          title: Device Id
+        shipment_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Shipment Id
+        kind:
+          type: string
+          title: Kind
+        severity:
+          type: string
+          enum:
+          - info
+          - warning
+          - critical
+          title: Severity
+        message:
+          type: string
+          title: Message
+        raised_at:
+          type: string
+          format: date-time
+          title: Raised At
+        resolved_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Resolved At
+        acked_by:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Acked By
+      type: object
+      required:
+      - id
+      - device_id
+      - shipment_id
+      - kind
+      - severity
+      - message
+      - raised_at
+      - resolved_at
+      - acked_by
+      title: Alert
+    Device:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        device_id:
+          type: string
+          title: Device Id
+        label:
+          type: string
+          title: Label
+        link_type:
+          type: string
+          enum:
+          - cellular
+          - lora
+          title: Link Type
+        last_seen_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Seen At
+        reading_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Reading At
+        temp_c:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Temp C
+        batt_v:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Batt V
+        rh_pct:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Rh Pct
+        rssi:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Rssi
+        temp_min_c:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Temp Min C
+        temp_max_c:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Temp Max C
+        status:
+          type: string
+          enum:
+          - online
+          - offline
+          title: Status
+      type: object
+      required:
+      - id
+      - device_id
+      - label
+      - link_type
+      - last_seen_at
+      - reading_at
+      - temp_c
+      - batt_v
+      - rh_pct
+      - rssi
+      - temp_min_c
+      - temp_max_c
+      - status
+      title: Device
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    Health:
+      properties:
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - status
+      title: Health
+    IngestResult:
+      properties:
+        inserted:
+          type: boolean
+          title: Inserted
+      type: object
+      required:
+      - inserted
+      title: IngestResult
+    Login:
+      properties:
+        email:
+          type: string
+          maxLength: 254
+          minLength: 1
+          title: Email
+        password:
+          type: string
+          maxLength: 72
+          minLength: 1
+          title: Password
+      type: object
+      required:
+      - email
+      - password
+      title: Login
+    ReadingBucket:
+      properties:
+        ts:
+          type: string
+          format: date-time
+          title: Ts
+        temp_c:
+          type: number
+          title: Temp C
+        count:
+          type: integer
+          title: Count
+      type: object
+      required:
+      - ts
+      - temp_c
+      - count
+      title: ReadingBucket
+    Session:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          const: bearer
+          title: Token Type
+          default: bearer
+        user:
+          $ref: '#/components/schemas/User'
+      type: object
+      required:
+      - access_token
+      - user
+      title: Session
+    Shipment:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        device_id:
+          type: string
+          format: uuid
+          title: Device Id
+        device_label:
+          type: string
+          title: Device Label
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+        product_name:
+          type: string
+          title: Product Name
+        origin:
+          type: string
+          title: Origin
+        destination:
+          type: string
+          title: Destination
+        status:
+          type: string
+          title: Status
+        started_at:
+          type: string
+          format: date-time
+          title: Started At
+        ended_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ended At
+        temp_min_c:
+          type: number
+          title: Temp Min C
+        temp_max_c:
+          type: number
+          title: Temp Max C
+      type: object
+      required:
+      - id
+      - device_id
+      - device_label
+      - product_id
+      - product_name
+      - origin
+      - destination
+      - status
+      - started_at
+      - ended_at
+      - temp_min_c
+      - temp_max_c
+      title: Shipment
+    User:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        tenant_id:
+          type: string
+          format: uuid
+          title: Tenant Id
+        email:
+          type: string
+          title: Email
+        role:
+          type: string
+          enum:
+          - owner
+          - admin
+          - viewer
+          title: Role
+      type: object
+      required:
+      - id
+      - tenant_id
+      - email
+      - role
+      title: User
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    Coordinates:
+      additionalProperties: false
+      properties:
+        lat:
+          maximum: 90
+          minimum: -90
+          title: Lat
+          type: number
+        lon:
+          maximum: 180
+          minimum: -180
+          title: Lon
+          type: number
+      required:
+      - lat
+      - lon
+      title: Coordinates
+      type: object
+    Telemetry:
+      additionalProperties: false
+      properties:
+        schema:
+          const: krio.telemetry.v1
+          title: Schema
+          type: string
+        device_id:
+          maxLength: 100
+          minLength: 1
+          title: Device Id
+          type: string
+        ts:
+          format: date-time
+          title: Ts
+          type: string
+        link:
+          enum:
+          - cellular
+          - lora
+          title: Link
+          type: string
+        seq:
+          maximum: 9223372036854775807
+          minimum: 0
+          title: Seq
+          type: integer
+        temp_c:
+          maximum: 1000
+          minimum: -273.15
+          title: Temp C
+          type: number
+        rh_pct:
+          anyOf:
+          - maximum: 100
+            minimum: 0
+            type: number
+          - type: 'null'
+          default: null
+          title: Rh Pct
+        batt_v:
+          anyOf:
+          - maximum: 100
+            minimum: 0
+            type: number
+          - type: 'null'
+          default: null
+          title: Batt V
+        rssi:
+          anyOf:
+          - maximum: 32767
+            minimum: -32768
+            type: integer
+          - type: 'null'
+          default: null
+          title: Rssi
+        gps:
+          anyOf:
+          - $ref: '#/components/schemas/Coordinates'
+          - type: 'null'
+          default: null
+        buffered:
+          title: Buffered
+          type: boolean
+      required:
+      - schema
+      - device_id
+      - ts
+      - link
+      - seq
+      - temp_c
+      - buffered
+      title: Telemetry
+      type: object
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
+    APIKeyHeader:
+      type: apiKey
+      in: header
+      name: X-Device-Key

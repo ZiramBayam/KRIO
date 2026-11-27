@@ -39,6 +39,11 @@ OFFLINE_COOLDOWN = timedelta(hours=1)
 OFFLINE_AFTER = timedelta(minutes=10)
 
 
+def offline_after(link_type: str) -> timedelta:
+    """Return the demo threshold for the device's sampling interval."""
+    return OFFLINE_AFTER * (2 if link_type == "lora" else 1)
+
+
 @dataclass(frozen=True)
 class ThresholdRange:
     """Rentang suhu aman satu produk (kolom tabel ``products``)."""
@@ -117,8 +122,10 @@ def evaluate_offline(
     now: datetime,
     device_label: str,
     last_alert_at: datetime | None = None,
+    *,
+    link_type: str = "cellular",
 ) -> AlertDraft | None:
-    """Menilai satu perangkat terhadap batas diam 10 menit.
+    """Menilai satu perangkat terhadap batas diam sesuai tipe link.
 
     Mengembalikan ``None`` bila perangkat masih mengirim, bila perangkat belum
     pernah mengirim sama sekali (``last_seen_at`` kosong, bukan kehilangan
@@ -127,7 +134,7 @@ def evaluate_offline(
     if last_seen_at is None:
         return None
     diam = now - last_seen_at
-    if diam < OFFLINE_AFTER:
+    if diam <= offline_after(link_type):
         return None
     if last_alert_at is not None and now - last_alert_at < OFFLINE_COOLDOWN:
         return None

@@ -61,6 +61,7 @@ def scan_offline(repo: AlertRepository, result: ScanResult, now: datetime) -> No
             last_seen_at=device.last_seen_at,
             now=now,
             device_label=device.device_label,
+            link_type=device.link_type,
             last_alert_at=last_alert,
         )
         if draft is None:

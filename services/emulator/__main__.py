@@ -64,15 +64,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--offline-duration", type=parse_duration, default="30m",
                    help="lama perangkat berhenti mengirim pada --mode offline (default: 30m)")
     p.add_argument("--setpoint", type=float, default=2.0, help="setpoint pendingin dalam °C (default: 2.0)")
-    p.add_argument("--sink", choices=("stdout", "postgres"), default="stdout",
+    p.add_argument("--sink", choices=("stdout", "postgres", "http"), default="stdout",
                    help="tujuan pengiriman (default: stdout)")
+    p.add_argument("--endpoint", help="URL lengkap POST /api/ingest untuk --sink http")
     p.add_argument("--dsn", default=os.getenv("DATABASE_URL"), help="DSN PostgreSQL untuk --sink postgres")
     p.add_argument("--seed", type=int, default=42, help="seed acak agar simulasi dapat diulang (default: 42)")
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.interval is not None and args.interval <= 0:
+        parser.error("--interval must be a positive number of seconds")
+    if args.speed < 0:
+        parser.error("--speed must be nonnegative")
     specs = [(args.device_id, args.link)] if args.device_id else args.devices
 
     devices = build_fleet(
@@ -83,11 +89,18 @@ def main(argv: list[str] | None = None) -> int:
         setpoint_c=args.setpoint,
         event_start_s=args.event_start,
     )
-    sink = make_sink(args.sink, args.dsn)
+    try:
+        sink = make_sink(
+            args.sink, args.dsn, endpoint=args.endpoint,
+            device_secret=os.getenv("KRIO_DEVICE_SECRET"),
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
     simulation = Simulation(
         devices=devices,
         sink=sink,
         duration_s=args.duration,
+        tick_s=min(30, *(device.interval_s for device in devices)),
         speed=args.speed,
         offline_seconds=args.offline_duration,
     )
@@ -97,6 +110,9 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         print("dihentikan pengguna", file=sys.stderr)
         return 130
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
     finally:
         rejected = getattr(sink, "rejected", 0)
         sink.close()

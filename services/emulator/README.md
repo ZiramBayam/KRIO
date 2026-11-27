@@ -42,7 +42,7 @@ PYTHONPATH=services python3 -m emulator --mode offline --offline-duration 45m --
 | `--duration` | Lama simulasi (`90s`, `30m`, `6h`, `1d`) | `6h` |
 | `--speed` | `0` secepat mungkin, `1` real-time, `60` satu menit simulasi per detik | `0` |
 | `--event-start` | Kapan kejadian mode dimulai | `10m` |
-| `--sink` | `stdout` (JSON Lines) atau `postgres` | `stdout` |
+| `--sink` | `stdout` (JSON Lines), `postgres`, atau `http` | `stdout` |
 | `--seed` | Seed acak agar simulasi dapat diulang | `42` |
 
 ## Model termal
@@ -67,5 +67,11 @@ Uji mencakup rentang suhu tiap mode, bentuk kurva excursion dan door-open, jeda 
 
 ## Batasan saat ini
 
-- Tujuan pengiriman baru `stdout` dan `postgres`. Jalur Azure IoT Hub menyusul setelah langganan Azure aktif (issue #22 dan #23); model termal dan payload tidak perlu berubah karena lapisan pengirimannya terpisah.
+- Tujuan pengiriman tersedia melalui `stdout`, `postgres`, dan API demo (`http`). Jalur Azure IoT Hub menyusul setelah langganan Azure aktif (issue #22 dan #23); model termal dan payload tidak perlu berubah karena lapisan pengirimannya terpisah.
 - Perilaku jaringan pada PRD §8.6 (packet loss, zona tanpa sinyal, store-and-forward, batas airtime LoRa) belum diimplementasikan dan akan menjadi issue tersendiri.
+
+## Mengirim melalui API demo
+
+Sink `http` mengirim payload ke `/api/ingest` menggunakan identitas perangkat.
+Lihat [panduan backend demo](../api/README.md) untuk setup, perintah emulator,
+dan cara mengecek pembacaan dari dashboard.

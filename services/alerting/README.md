@@ -5,7 +5,7 @@ Menerbitkan peringatan dari data `readings` yang sudah masuk basis data:
 | Issue | Jenis peringatan | Pemicu |
 |---|---|---|
 | #48 | `KEGAGALAN_PENDINGIN` (ambang) | Suhu terukur keluar dari rentang `products.temp_min_c`–`temp_max_c` |
-| #49 | `DEVICE_OFFLINE` | Perangkat dengan pengiriman aktif diam lebih dari 10 menit |
+| #49 | `DEVICE_OFFLINE` | Perangkat dengan pengiriman aktif diam lebih dari 10 menit (seluler) atau 20 menit (LoRa) |
 | #62 | `PINTU_DIBUKA` / `KEGAGALAN_PENDINGIN` (residual) | Residual r(t) = T_terukur - T_prediksi melebihi 3σ; durasi < 15 menit & kembali normal → `PINTU_DIBUKA` (info), durasi ≥ 20 menit & CUSUM naik → `KEGAGALAN_PENDINGIN` (critical) |
 
 Keparahan peringatan suhu ambang (#48): simpangan sampai 5 °C dari batas produk `warning`, di atas 5 °C `critical`.
@@ -63,7 +63,7 @@ Emulator menuliskan stempel waktu simulasi yang berjalan lebih cepat daripada wa
 
 ## Batasan saat ini
 
-- Pemindaian dijalankan manual lewat CLI. Pemicu waktu Azure Functions menyusul setelah Function App aktif (issue #26); logikanya tidak perlu berubah karena `scan()` sudah terpisah dari cara pemanggilan.
+- API demo menjalankan pemindaian tiap 30 detik. CLI tetap dapat dipakai untuk pengujian manual. Pemicu waktu Azure Functions mengikuti issue #26.
 - `residual.py` (#62) sudah ada dan teruji, tapi **belum dipanggil dari `scanner.py`** — `scan_thresholds`/`scan_offline` saat ini tidak menyertakan deteksi residual. Alasannya: `detect_events` butuh T_prediksi(t) dari tabel `forecasts`, yang masih kosong karena model forecast (#58) dan `fn_forecast` (#60) belum selesai. Begitu keduanya ada, tambahkan `scan_residual(repo, result, now)` yang mengambil pasangan (reading, forecast terdekat) per perangkat dan memanggil `residual.detect_events`.
 - Ambang kalibrasi `residual.py` saat ini (lihat `ml/reports/dataset_b_calibration.md`) dihasilkan dari baseline persistence/moving-average sebagai pengganti sementara model forecast — WAJIB dikalibrasi ulang begitu residual sungguhan tersedia.
 - Jenis `PREDICTED_EXCURSION` milik peringatan dini prediktif (issue #61), bukan lapisan ini.

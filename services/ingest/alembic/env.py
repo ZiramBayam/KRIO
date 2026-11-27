@@ -8,6 +8,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy.engine import make_url
 
 # Add parent dir to path so we can import models if needed
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -19,7 +20,10 @@ database_url = os.getenv(
     "DATABASE_URL",
     "postgresql://postgres:postgres@localhost:5432/krio_dev",
 )
-config.set_main_option("sqlalchemy.url", database_url)
+url = make_url(database_url)
+if url.drivername in ("postgres", "postgresql"):
+    url = url.set(drivername="postgresql+psycopg2")
+config.set_main_option("sqlalchemy.url", url.render_as_string(hide_password=False).replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

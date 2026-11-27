@@ -37,7 +37,10 @@ SELECT d.id        AS device_id,
        d.tenant_id AS tenant_id,
        d.label     AS device_label,
        s.id        AS shipment_id,
-       (SELECT max(r.ts) FROM readings r WHERE r.device_id = d.id) AS last_seen_at
+       greatest(d.last_seen_at, (
+           SELECT r.ts FROM readings r WHERE r.device_id = d.id ORDER BY r.ts DESC LIMIT 1
+       )) AS last_seen_at,
+       d.link_type AS link_type
 FROM shipments s
 JOIN devices d ON d.id = s.device_id AND d.tenant_id = s.tenant_id
 WHERE s.status = 'active'
@@ -90,6 +93,7 @@ class DeviceStatus:
     device_label: str
     shipment_id: str
     last_seen_at: datetime | None
+    link_type: str = "cellular"
 
 
 class AlertRepository:
@@ -124,6 +128,7 @@ class AlertRepository:
                     device_label=row[2],
                     shipment_id=row[3],
                     last_seen_at=row[4],
+                    link_type=row[5],
                 )
                 for row in cur.fetchall()
             ]

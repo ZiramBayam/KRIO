@@ -10,6 +10,12 @@ from __future__ import annotations
 import json
 import sys
 from typing import Protocol
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
+
+from .device_keys import device_key
+from .payload import encode
 
 
 class Sink(Protocol):
@@ -81,9 +87,51 @@ class PostgresSink:
         self.conn.close()
 
 
-def make_sink(name: str, dsn: str | None = None) -> Sink:
+class HttpSink:
+    """Send telemetry through the demo ingestion API."""
+
+    def __init__(self, endpoint: str, secret: str) -> None:
+        url = urlsplit(endpoint)
+        if url.scheme != "https" and not (
+            url.scheme == "http" and url.hostname in ("localhost", "127.0.0.1", "::1")
+        ):
+            raise ValueError("endpoint must use HTTPS or loopback HTTP")
+        self.endpoint = endpoint
+        self.secret = secret
+
+    def send(self, payload: dict) -> None:
+        request = Request(
+            self.endpoint,
+            data=encode(payload),
+            headers={
+                "Content-Type": "application/json",
+                "X-Device-Key": device_key(self.secret, payload["device_id"]),
+            },
+            method="POST",
+        )
+        try:
+            with urlopen(request, timeout=10) as response:
+                response.read()
+        except HTTPError as exc:
+            with exc:
+                raise RuntimeError(f"API ingest rejected telemetry (HTTP {exc.code})") from None
+        except URLError:
+            raise RuntimeError("Could not connect to the ingest API") from None
+
+    def close(self) -> None:
+        pass
+
+
+def make_sink(
+    name: str, dsn: str | None = None, *, endpoint: str | None = None,
+    device_secret: str | None = None,
+) -> Sink:
     if name == "stdout":
         return StdoutSink()
+    if name == "http":
+        if not endpoint or not device_secret:
+            raise ValueError("sink http membutuhkan --endpoint dan KRIO_DEVICE_SECRET")
+        return HttpSink(endpoint, device_secret)
     if name == "postgres":
         if not dsn:
             raise ValueError("sink postgres membutuhkan DATABASE_URL atau --dsn")

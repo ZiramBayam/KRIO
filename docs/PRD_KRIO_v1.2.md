@@ -244,6 +244,8 @@ Aturan main: **jika model tidak mengalahkan baseline sederhana, PRD ini mengharu
 
 ## 7. Arsitektur Sistem
 
+Keputusan deployment demo menggunakan satu VM yang disetujui lab. Aliran data demo dan rancangan produksi dijelaskan pada [catatan arsitektur deployment](demo/azure.md).
+
 ```
 ┌─ SUMBER DATA ────────────────────────────────────────────────────────┐
 │                                                                      │

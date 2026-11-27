@@ -585,3 +585,9 @@ nav { display: flex; flex-direction: column; gap: 4px; }
 
 
 
+/* Shipment rows remain full keyboard-accessible links. */
+.row-link { text-decoration: none; color: inherit; cursor: pointer; }
+.row-link:hover { background: var(--color-surface-muted); }
+.shipment-route .route-endpoint { flex-shrink: 1; min-width: 0; }
+.shipment-route .route-label { white-space: normal; overflow-wrap: anywhere; }
+.shipment-filters { flex-wrap: wrap; }

@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark"><Icon name="thermo" size={18} /></span>
+          <span className="brand-mark"><img src="/krio.svg" alt="" width={32} height={32} /></span>
           <span>KRIO</span>
         </div>
         <nav aria-label="Menu utama">

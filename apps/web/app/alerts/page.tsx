@@ -11,6 +11,12 @@ import { usePoll } from "@/lib/usePoll";
 const STATUS_FILTER = { active: "Aktif", resolved: "Selesai", all: "Semua" } as const;
 const SEVERITY_FILTER = { all: "Semua tingkat", critical: "Kritis", warning: "Waspada" } as const;
 
+function alertIcon(kind: string): string {
+  if (kind === "DEVICE_OFFLINE") return "signal";
+  if (kind === "KEGAGALAN_PENDINGIN") return "thermo";
+  return "bell";
+}
+
 export default function Alerts() {
   const [status, setStatus] = useState<keyof typeof STATUS_FILTER>("active");
   const [severity, setSeverity] = useState<keyof typeof SEVERITY_FILTER>("all");
@@ -87,9 +93,14 @@ export default function Alerts() {
             {list.map((a) => (
               <div className={`row${fresh.has(a.id) ? " row-enter" : ""}`} key={a.id}>
                 <StatusBadge status={alertStatus(a)} />
-                <div>
-                  <div className="row-title">{KIND_LABEL[a.kind] ?? a.kind} di {labels.get(a.device_id) ?? "perangkat"}</div>
-                  <div className="row-sub">{a.message}</div>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <span className={`icon-chip icon-chip-${a.severity}`} aria-hidden="true">
+                    <Icon name={alertIcon(a.kind)} size={16} />
+                  </span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="row-title">{KIND_LABEL[a.kind] ?? a.kind} di {labels.get(a.device_id) ?? "perangkat"}</div>
+                    <div className="row-sub">{a.message}</div>
+                  </div>
                 </div>
                 <div className="muted">{stamp(a.raised_at)}</div>
                 <div>

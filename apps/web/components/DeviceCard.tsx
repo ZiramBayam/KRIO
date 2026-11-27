@@ -3,6 +3,7 @@ import type { Device } from "@/lib/api";
 import { ago, deviceStatus, link, temp } from "@/lib/format";
 import { Icon } from "./Icon";
 import { StatusBadge } from "./StatusBadge";
+import { SignalBars } from "./SignalBars";
 
 export function DeviceCard({ device, now }: { device: Device; now: number }) {
   return (
@@ -22,7 +23,10 @@ export function DeviceCard({ device, now }: { device: Device; now: number }) {
           <div className="fact"><div className="fact-label"><Icon name="battery" size={14} />Baterai</div>
             <div className="fact-value num">{device.batt_v != null ? `${device.batt_v.toFixed(2)} V` : "Tidak ada"}</div></div>
           <div className="fact"><div className="fact-label"><Icon name="signal" size={14} />Jaringan</div>
-            <div className="fact-value">{link(device.link_type)}</div></div>
+            <div className="fact-value" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+              <span>{link(device.link_type)}</span>
+              <SignalBars rssi={device.rssi} />
+            </div></div>
         </div>
       </div>
       <div className="card-body">

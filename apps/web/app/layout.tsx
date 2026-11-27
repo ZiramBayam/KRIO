@@ -6,9 +6,21 @@ export const metadata: Metadata = {
   description: "Pemantauan rantai dingin ikan segar",
 };
 
+const THEME_INIT = `(function(){
+  try {
+    var saved = localStorage.getItem("krio.theme");
+    var theme = saved === "light" || saved === "dark" ? saved
+      : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+  } catch (e) {}
+})();`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

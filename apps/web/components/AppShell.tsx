@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { api, session, signOut, type Alert, type User } from "@/lib/api";
 import { usePoll } from "@/lib/usePoll";
 import { Icon } from "./Icon";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV = [
   { href: "/dashboard/", label: "Pemantauan", icon: "grid" },
@@ -50,6 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="account">
+          <ThemeToggle />
           <div className="account-mail">{user.email}</div>
           <div className="account-role">{{ owner: "Pemilik", admin: "Operator", viewer: "Hanya lihat" }[user.role]}</div>
           <button className="btn btn-ghost" onClick={signOut}><Icon name="logout" size={16} /> Keluar</button>

@@ -8,6 +8,8 @@ import { Icon } from "@/components/Icon";
 import { RouteLine } from "@/components/RouteLine";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TempChart } from "@/components/TempChart";
+import { BackendPendingNotice } from "@/components/BackendPendingNotice";
+import { mockShelfLife } from "@/lib/mockShelfLife";
 import { HeroBanner } from "@/components/HeroBanner";
 import { api, type Alert, type Reading, type Shipment } from "@/lib/api";
 import { alertStatus, clock, KIND_LABEL, shipmentStatus, shipmentStatusLabel, stamp, temp } from "@/lib/format";
@@ -59,6 +61,14 @@ function Detail() {
           {!readings.data && !readings.error && <div className="skeleton" />}
           {readings.data && !readings.error && points.length === 0 && <div className="note">Belum ada pembacaan suhu dalam rentang ini.</div>}
           {points.length > 0 && <TempChart points={points} min={s.temp_min_c} max={s.temp_max_c} xLabel="jam" formatX={(x) => range === "1h" ? clock(new Date(x)).slice(0, 5) : stamp(new Date(x))} />}
+        </div>
+      </div>
+      <div className="card"><div className="card-head"><h2>Sisa umur simpan</h2><span className="chip">Contoh sementara</span></div>
+        <div className="card-body">
+          <div className="fact-value num">{mockShelfLife(s)}%</div>
+          <div className="progress" role="progressbar" aria-label="Contoh sisa umur simpan, bukan data nyata" aria-valuemin={0} aria-valuemax={100} aria-valuenow={mockShelfLife(s)}><span style={{ width: `${mockShelfLife(s)}%` }} /></div>
+          <p className="muted">Ilustrasi berdasarkan durasi referensi arbitrer 72 jam. Bukan estimasi kelayakan atau keamanan produk.</p>
+          <BackendPendingNotice issues={["#66"]} owner="AnthonyS051105" />
         </div>
       </div>
       <div className="card"><div className="card-head"><h2>Linimasa pengiriman</h2></div>

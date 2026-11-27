@@ -43,7 +43,7 @@ function Detail() {
       <h1>{s ? s.product_name : "Detail pengiriman"}</h1>
       {s && <><p className="sub">{s.device_label}</p><RouteLine origin={s.origin} destination={s.destination} className="shipment-route" /></>}
     </div>{s && <StatusBadge status={shipmentStatus(s)} />}</div>
-    {shipment.error && <div className="note note-error" role="alert"><div><b>Pengiriman tidak dapat dimuat</b>{shipment.error}</div></div>}
+    {shipment.error && <div className="note note-error" role="alert"><div><b>Pengiriman tidak dapat dimuat</b>Periksa ID pengiriman atau coba lagi setelah koneksi tersedia.</div></div>}
     {!s && !shipment.error && <div className="skeleton" aria-label="Memuat detail pengiriman" />}
     {s && <>
       <div className="grid-3">
